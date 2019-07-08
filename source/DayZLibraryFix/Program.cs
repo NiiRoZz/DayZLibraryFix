@@ -4,6 +4,7 @@ using System.IO;
 using System.Linq;
 using System.Xml;
 using System.Windows.Forms;
+using System.Text;
 
 namespace DayZLibraryFix
 {
@@ -26,6 +27,13 @@ namespace DayZLibraryFix
             }
 
             return false;
+        }
+
+        public static StringBuilder LogString = new StringBuilder();
+        public static void Out(string str)
+        {
+            Console.WriteLine(str);
+            LogString.Append(str).Append(Environment.NewLine);
         }
 
         [STAThread]
@@ -76,8 +84,16 @@ namespace DayZLibraryFix
                     allPathsDuplicated = new HashSet<string>(allPathsDuplicated).ToList();
                     foreach (string currentPath in allPathsDuplicated)
                     {
-                        Console.WriteLine("Path duplicated for {0}", currentPath);
+                        Out("Path duplicated for " + currentPath);
                     }
+
+                    using (System.IO.StreamWriter file = new System.IO.StreamWriter("./DayZLibraryFix.log"))
+                    {
+                        file.Write(LogString.ToString());
+                        file.Close();
+                        file.Dispose();
+                    }
+
                     Console.WriteLine("PRESS any key to exit");
                     Console.ReadKey();
                 }

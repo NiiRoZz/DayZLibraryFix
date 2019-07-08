@@ -54,6 +54,8 @@ namespace DayZLibraryFix
                     allDocuments.Add(xmlDoc);
                 }
 
+                List<string> allPathsDuplicated = new List<string>();
+
                 foreach (XmlDocument document in allDocuments)
                 {
                     XmlNodeList nodes = document.DocumentElement.SelectNodes("/Library/Template");
@@ -63,16 +65,27 @@ namespace DayZLibraryFix
 
                         if (detectDuplicatePath(allDocuments, filePath, node.SelectSingleNode("Name").InnerText))
                         {
-                            Console.WriteLine("Path duplicated for {0}", filePath);
-                            Console.WriteLine("PRESS any key to exit");
-                            Console.ReadKey();
-                            return;
+                            allPathsDuplicated.Add(filePath);
+                            continue;
                         }
                     }
                 }
 
-                Console.WriteLine("All path is valid, PRESS any key to exit");
-                Console.ReadKey();
+                if (allPathsDuplicated.Count() > 0)
+                {
+                    allPathsDuplicated = new HashSet<string>(allPathsDuplicated).ToList();
+                    foreach (string currentPath in allPathsDuplicated)
+                    {
+                        Console.WriteLine("Path duplicated for {0}", currentPath);
+                    }
+                    Console.WriteLine("PRESS any key to exit");
+                    Console.ReadKey();
+                }
+                else
+                {
+                    Console.WriteLine("All path is valid, PRESS any key to exit");
+                    Console.ReadKey();
+                }
             }
         }
     }

@@ -8,6 +8,29 @@ using System.Text;
 
 namespace DayZLibraryFix
 {
+    class CustomDictionary
+    {
+        public Dictionary<string, List<string>> internalDictionary = new Dictionary<string, List<string>>();
+
+        public void Add(string key, string value)
+        {
+            if (this.internalDictionary.ContainsKey(key))
+            {
+                List<string> list = this.internalDictionary[key];
+                if (!list.Contains(value))
+                {
+                    list.Add(value);
+                }
+            }
+            else
+            {
+                List<string> list = new List<string>();
+                list.Add(value);
+                this.internalDictionary.Add(key, list);
+            }
+        }
+    }
+
     class Program
     {
         static bool detectDuplicatePath(List<XmlDocument> allDocuments, string pathFile, string nameTemplate)
@@ -62,7 +85,7 @@ namespace DayZLibraryFix
                     allDocuments.Add(xmlDoc);
                 }
 
-                List<string> allPathsDuplicated = new List<string>();
+                CustomDictionary allPathsDuplicated = new CustomDictionary();
 
                 foreach (XmlDocument document in allDocuments)
                 {
@@ -70,21 +93,35 @@ namespace DayZLibraryFix
                     foreach (XmlNode node in nodes)
                     {
                         string filePath = node.SelectSingleNode("File").InnerText;
+                        string templateName = node.SelectSingleNode("Name").InnerText;
 
-                        if (detectDuplicatePath(allDocuments, filePath, node.SelectSingleNode("Name").InnerText))
+                        if (detectDuplicatePath(allDocuments, filePath, templateName))
                         {
-                            allPathsDuplicated.Add(filePath);
+                            allPathsDuplicated.Add(filePath, templateName);
                             continue;
                         }
                     }
                 }
 
-                if (allPathsDuplicated.Count() > 0)
+                if (allPathsDuplicated.internalDictionary.Count() > 0)
                 {
-                    allPathsDuplicated = new HashSet<string>(allPathsDuplicated).ToList();
-                    foreach (string currentPath in allPathsDuplicated)
+                    foreach (KeyValuePair<string, List<string>> item in allPathsDuplicated.internalDictionary)
                     {
-                        Out("Path duplicated for " + currentPath);
+                        string text = "Path duplicated for " + item.Key + " template(s) : ";
+
+                        for (int i = 0; i < item.Value.Count; ++i)
+                        {
+                            if (i == item.Value.Count - 1)
+                            {
+                                text += item.Value[i];
+                            }
+                            else
+                            {
+                                text += item.Value[i] + ", ";
+                            }
+                        }
+
+                        Out(text);
                     }
 
                     using (System.IO.StreamWriter file = new System.IO.StreamWriter("./DayZLibraryFix.log"))
